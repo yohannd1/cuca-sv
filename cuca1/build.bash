@@ -7,8 +7,8 @@ run() {
   "$@"
 }
 
-sources=(src/ram.sv)
-testbench=src/tb_ram.sv
+sources=(src/tri_buf.sv src/ram.sv)
+testbench=src/tb_tri_buf.sv
 
 run mkdir -p build
 run iverilog -g2012 "${sources[@]}" "$testbench" -o build/out.com
