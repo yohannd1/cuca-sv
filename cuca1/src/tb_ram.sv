@@ -3,8 +3,13 @@
 module tb_ram;
   localparam T = 2;
 
+  wire[7:0] bus;
+
+  logic bus_tri_rw;
+  logic[7:0] bus_tri_data;
+  tri_buf #(.WIDTH(8)) u0(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
+
   logic clock, n_reset, enable, rw;
-  logic[7:0] bus;
   ram uut(.*);
 
   initial begin
@@ -12,12 +17,35 @@ module tb_ram;
     forever #(T/2) clock = ~clock;
   end
 
-  // task assert_equals #(type T) (input T expected, got);
-  //   if (lhs != rhs) begin
-  //     $error("expected %s, got %s", expected, got);
-  //     $finish;
-  //   end
-  // endtask
+  task assert_or_quit(input integer condition, input string message);
+    assert (condition) else begin
+      $error("%s", message);
+      $finish;
+    end
+  endtask
+
+  task bus_feed(input logic value);
+    bus_tri_data = value;
+    bus_tri_rw = 1;
+  endtask
+
+  task bus_cut();
+    bus_tri_rw = 0;
+  endtask
+
+  // Test for a single memory write
+  task test_write(input integer idx, input integer val);
+    bus_feed(idx);
+    enable = 1;
+    rw = 1;
+    @(negedge clock);
+    bus_feed(val);
+    enable = 1;
+    rw = 1;
+    @(negedge clock);
+
+    assert_or_quit(uut.memory[idx] === val, "failed test_write");
+  endtask
 
   initial begin
     n_reset = 1;
@@ -28,18 +56,7 @@ module tb_ram;
     rw = 0;
     n_reset = 0;
 
-    // 1. Single cell memory write & read
-    // mem[10] = 15
-    bus = 10;
-    enable = 1;
-    rw = 1;
-    @(negedge clock);
-    bus = 15;
-    enable = 1;
-    rw = 1;
-    @(negedge clock);
-
-    assert (uut.memory[10] == 15) else $error("FUCK");
+    test_write(10, 15);
 
     $finish;
   end
