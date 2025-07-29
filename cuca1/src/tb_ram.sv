@@ -39,12 +39,23 @@ module tb_ram;
     enable = 1;
     rw = 1;
     @(negedge clock);
+
     bus_feed(val);
     enable = 1;
     rw = 1;
     @(negedge clock);
 
     assert_or_quit(uut.memory[idx] === val, "failed test_write");
+  endtask
+
+  // Test for a single memory read
+  task test_read(input integer idx, input integer val);
+    bus_feed(idx);
+    enable = 1;
+    rw = 0;
+    @(negedge clock);
+
+    assert_or_quit(uut.memory[idx] === bus, "failed test_read");
   endtask
 
   initial begin
@@ -57,6 +68,7 @@ module tb_ram;
     n_reset = 0;
 
     test_write(10, 15);
+    test_read(10, 15);
 
     $finish;
   end

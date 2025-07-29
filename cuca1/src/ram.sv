@@ -4,14 +4,14 @@ localparam BITW = 8;
 //
 // Perform actions when `enable` is set:
 //
-// 1. read mode (rw=0) - fetches an address from `bus` and returns the value
-// at that address on the next clock cycle.
+// 1. read mode (rw=0) - reads an address from `bus`; on the next cycle,
+// drives into `bus` the value at that address.
 //
-// 2. write mode (rw=1) - fetches an address from `bus`; on the next clock
-// cycle, fetches a value from `bus` and puts said value on the address.
+// 2. write mode (rw=1) - reads an address from `bus`; on the next
+// cycle, reads a value from `bus` and puts said value on the address.
 module ram(
   input logic clock, n_reset, enable, rw,
-  inout logic[BITW-1:0] bus
+  inout wire[BITW-1:0] bus
 );
   localparam SIZE = 256;
 
