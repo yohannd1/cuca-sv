@@ -12,13 +12,6 @@ module tb_ram;
   logic clock, n_reset, enable, rw;
   ram uut(.*);
 
-  task assert_or_quit(input integer condition, input string message);
-    assert (condition) else begin
-      $error("%s", message);
-      $finish;
-    end
-  endtask
-
   task bus_feed(input logic[7:0] value);
     bus_tri_data <= value;
     bus_tri_rw <= 1;
@@ -87,10 +80,12 @@ module tb_ram;
     @(negedge clock);
 
     bus_feed(10);
-    #1 assert_or_quit(bus === 10, "bus test 1 failed");
+    #1 assert (bus === 10)
+    else $fatal(0, "bus test 1 failed");
 
     bus_cut();
-    #1 assert_or_quit(bus === 'z, "bus test 2 failed");
+    #1 assert (bus === 'z)
+    else $fatal(0, "bus test 2 failed");
 
     @(negedge clock);
 
