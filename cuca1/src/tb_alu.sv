@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module tb_ram;
+module tb_alu;
   localparam T = 2;
 
   wire[7:0] bus;
@@ -22,7 +22,6 @@ module tb_ram;
     bus_tri_rw <= 0;
   endtask
 
-  // Test for a single memory write
   task test_add(input integer a, b);
     assert (~clock)
     else $fatal(0, "bad start conditions");
@@ -41,6 +40,75 @@ module tb_ram;
 
     assert (bus === a + b)
     else $fatal(0, "failed test_add");
+
+    bus_cut();
+  endtask
+
+  task test_sub(input integer a, b);
+    assert (~clock)
+    else $fatal(0, "bad start conditions");
+
+    op <= ALU_WRITE_R0;
+    bus_feed(a);
+    @(negedge clock);
+
+    op <= ALU_WRITE_R1;
+    bus_feed(b);
+    @(negedge clock);
+
+    op <= ALU_SUB;
+    bus_cut();
+    @(negedge clock);
+
+    assert (bus === a - b)
+    else $fatal(0, "failed test_sub");
+
+    bus_cut();
+  endtask
+
+  task test_inc(input integer a);
+    assert (~clock)
+    else $fatal(0, "bad start conditions");
+
+    op <= ALU_WRITE_R1;
+    bus_feed(a);
+    @(negedge clock);
+
+    op <= ALU_INC;
+    bus_cut();
+    @(negedge clock);
+
+    assert (bus === a + 1)
+    else $fatal(0, "failed test_inc");
+
+    bus_cut();
+  endtask
+
+  task test_rw();
+    assert (~clock)
+    else $fatal(0, "bad start conditions");
+
+    op <= ALU_WRITE_R0;
+    bus_feed(15);
+    @(negedge clock);
+
+    op <= ALU_READ_R0;
+    bus_cut();
+    @(negedge clock);
+
+    assert (bus === 15)
+    else $fatal(0, "failed test_rw (reg 0)");
+
+    op <= ALU_WRITE_R1;
+    bus_feed(15);
+    @(negedge clock);
+
+    op <= ALU_READ_R1;
+    bus_cut();
+    @(negedge clock);
+
+    assert (bus === 15)
+    else $fatal(0, "failed test_rw (reg 1)");
 
     bus_cut();
   endtask
@@ -71,9 +139,9 @@ module tb_ram;
 
     n_reset <= 1;
     test_add(1, 5);
-    // TODO: test sub
-    // TODO: test inc
-    // TODO: test register read&writes
+    test_sub(5, 3);
+    test_inc(1);
+    test_rw();
 
     $finish;
   end
