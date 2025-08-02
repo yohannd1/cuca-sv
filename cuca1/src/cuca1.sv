@@ -30,9 +30,9 @@ module cuca1(
   logic[BITW-1:0] bus;
   logic mi[CMD_MAX];
 
-  register acc( .clock(clock), .enable(mi[PIN_ACC_EN]), .rw(mi[PIN_ACC_RW]) );
-  register pc( .clock(clock), .enable(mi[PIN_PC_EN]), .rw(mi[PIN_PC_RW]) );
-  register ir( .clock(clock), .enable(mi[PIN_IR_EN]), .rw(mi[PIN_IR_RW]) );
+  register acc(.clock(clock), .enable(mi[PIN_ACC_EN]), .rw(mi[PIN_ACC_RW]));
+  register pc(.clock(clock), .enable(mi[PIN_PC_EN]), .rw(mi[PIN_PC_RW]));
+  register ir(.clock(clock), .enable(mi[PIN_IR_EN]), .rw(mi[PIN_IR_RW]));
   assign ext_bus = bus;
 
   always_ff @(posedge clock) begin

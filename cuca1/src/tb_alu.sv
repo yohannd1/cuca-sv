@@ -70,9 +70,10 @@ module tb_ram;
     @(negedge clock);
 
     n_reset <= 1;
-    @(negedge clock);
-
     test_add(1, 5);
+    // TODO: test sub
+    // TODO: test inc
+    // TODO: test register read&writes
 
     $finish;
   end

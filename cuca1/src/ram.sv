@@ -27,7 +27,7 @@ module ram(
   logic[$clog2(STATE_MAX)-1:0] state;
 
   logic bus_tri_rw;
-  logic[7:0] bus_tri_data;
+  logic[BITW-1:0] bus_tri_data;
   tri_buf #(.WIDTH(BITW)) u0(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
 
   task automatic bus_feed(input logic[BITW-1:0] value);
