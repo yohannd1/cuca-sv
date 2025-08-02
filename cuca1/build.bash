@@ -21,8 +21,9 @@ declare -A tbs
 tbs[ram]="src/tb_ram.sv"
 tbs[tri_buf]="src/tb_tri_buf.sv"
 tbs[register]="src/tb_register.sv"
+tbs[alu]="src/tb_alu.sv"
 
-sources=(src/tri_buf.sv src/ram.sv src/register.sv)
+sources=(src/tri_buf.sv src/ram.sv src/register.sv src/alu.sv)
 testbench=${tbs[$1]}
 
 run mkdir -p build
