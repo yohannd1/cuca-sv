@@ -34,7 +34,12 @@ module alu(
 
   logic bus_tri_rw;
   logic[BITW-1:0] bus_tri_data;
-  tri_buf #(.WIDTH(BITW)) buf_out(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
+  logic bus_tri_rw_actual;
+  tri_buf #(.WIDTH(BITW)) buf_out(
+    .rw(clock ? bus_tri_rw : 1'b0), // only output data on single clock cycles (FIXME: this might actually not be ideal...)
+    .data(bus_tri_data),
+    .bus(bus)
+  );
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin

@@ -24,7 +24,7 @@ module tb_alu;
 
   task test_add(input integer a, b);
     assert (~clock)
-    else $fatal(0, "bad start conditions");
+    else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
     bus_feed(a);
@@ -39,14 +39,14 @@ module tb_alu;
     @(negedge clock);
 
     assert (bus === a + b)
-    else $fatal(0, "failed test_add");
+    else $error("failed test_add");
 
     bus_cut();
   endtask
 
   task test_sub(input integer a, b);
     assert (~clock)
-    else $fatal(0, "bad start conditions");
+    else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
     bus_feed(a);
@@ -61,14 +61,14 @@ module tb_alu;
     @(negedge clock);
 
     assert (bus === a - b)
-    else $fatal(0, "failed test_sub");
+    else $error("failed test_sub");
 
     bus_cut();
   endtask
 
   task test_inc(input integer a);
     assert (~clock)
-    else $fatal(0, "bad start conditions");
+    else $error("bad start conditions");
 
     op <= ALU_WRITE_R1;
     bus_feed(a);
@@ -79,14 +79,14 @@ module tb_alu;
     @(negedge clock);
 
     assert (bus === a + 1)
-    else $fatal(0, "failed test_inc");
+    else $error("failed test_inc");
 
     bus_cut();
   endtask
 
   task test_rw();
     assert (~clock)
-    else $fatal(0, "bad start conditions");
+    else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
     bus_feed(15);
@@ -97,7 +97,7 @@ module tb_alu;
     @(negedge clock);
 
     assert (bus === 15)
-    else $fatal(0, "failed test_rw (reg 0)");
+    else $error("failed test_rw (reg 0)");
 
     op <= ALU_WRITE_R1;
     bus_feed(15);
@@ -108,7 +108,7 @@ module tb_alu;
     @(negedge clock);
 
     assert (bus === 15)
-    else $fatal(0, "failed test_rw (reg 1)");
+    else $error("failed test_rw (reg 1)");
 
     bus_cut();
   endtask
@@ -119,8 +119,8 @@ module tb_alu;
   end
 
   initial begin
-    // $dumpfile("build/waveform.vcd");
-    // $dumpvars(0, tb_alu);
+    $dumpfile("build/waveform.vcd");
+    $dumpvars(0, tb_alu);
 
     op <= ALU_NOP;
 
@@ -129,11 +129,11 @@ module tb_alu;
 
     bus_feed(10);
     #1 assert (bus === 10)
-    else $fatal(0, "bus test 1 failed");
+    else $error("bus test 1 failed");
 
     bus_cut();
     #1 assert (bus === 'z)
-    else $fatal(0, "bus test 2 failed");
+    else $error("bus test 2 failed");
 
     @(negedge clock);
 
