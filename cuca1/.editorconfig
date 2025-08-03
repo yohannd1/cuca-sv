@@ -1,0 +1,13 @@
+root = true
+
+[*.{sv}]
+indent_style = space
+indent_size = 2
+
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+
+[*]
+trim_trailing_whitespace = true
+insert_final_newline = true
