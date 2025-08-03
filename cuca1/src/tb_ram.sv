@@ -23,10 +23,8 @@ module tb_ram;
 
   // Test for a single memory write
   task test_write(input integer idx, input integer val);
-    assert (uut.state === STATE_IDLE)
-    else $fatal(0, "bad start conditions");
-
-    @(negedge clock);
+    assert (~clock && uut.state === STATE_IDLE)
+    else $error("bad start conditions");
 
     enable <= 1;
     rw <= 1;
@@ -37,10 +35,10 @@ module tb_ram;
     @(negedge clock);
 
     assert (uut.memory[idx] === val)
-    else $fatal(0, "failed test_write");
+    else $error("failed test_write");
 
     assert (uut.state === STATE_IDLE && ~clock)
-    else $fatal(0, "bad end conditions");
+    else $error("bad end conditions");
 
     bus_cut();
     enable <= 0;
@@ -49,8 +47,8 @@ module tb_ram;
 
   // Test for a single memory read
   task test_read(input integer idx);
-    assert (uut.state === STATE_IDLE)
-    else $fatal(0, "bad start conditions");
+    assert (~clock && uut.state === STATE_IDLE)
+    else $error("bad start conditions");
 
     bus_feed(idx);
     enable <= 1;
@@ -61,10 +59,10 @@ module tb_ram;
     @(negedge clock);
 
     assert (uut.memory[idx] === bus)
-    else $fatal(0, "value is not expected");
+    else $error("value is not expected");
 
     assert (uut.state === STATE_IDLE && ~clock)
-    else $fatal(0, "bad end conditions");
+    else $error("bad end conditions");
   endtask
 
   initial begin
@@ -73,19 +71,19 @@ module tb_ram;
   end
 
   initial begin
-    // $dumpfile("build/waveform.vcd");
-    // $dumpvars(0, tb_ram);
+    $dumpfile("build/waveform.vcd");
+    $dumpvars(0, tb_ram);
 
     n_reset <= 0;
     @(negedge clock);
 
     bus_feed(10);
     #1 assert (bus === 10)
-    else $fatal(0, "bus test 1 failed");
+    else $error("bus test 1 failed");
 
     bus_cut();
     #1 assert (bus === 'z)
-    else $fatal(0, "bus test 2 failed");
+    else $error("bus test 2 failed");
 
     @(negedge clock);
 
@@ -94,8 +92,8 @@ module tb_ram;
     n_reset <= 1;
     @(negedge clock);
 
+    test_read(10);
     test_write(10, 15);
-
     test_read(10);
 
     $finish;

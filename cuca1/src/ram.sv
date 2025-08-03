@@ -28,7 +28,11 @@ module ram(
 
   logic bus_tri_rw;
   logic[BITW-1:0] bus_tri_data;
-  tri_buf #(.WIDTH(BITW)) u0(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
+  tri_buf #(.WIDTH(BITW)) buf_out(
+    .rw(clock & bus_tri_rw),
+    .data(bus_tri_data),
+    .bus(bus)
+  );
 
   task automatic bus_feed(input logic[BITW-1:0] value);
     bus_tri_data <= value;
