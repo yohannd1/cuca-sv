@@ -8,7 +8,7 @@ typedef enum {
   ALU_WRITE_R0,
   ALU_WRITE_R1,
   ALU_MAX
-} _alu_op_t;
+} enum_alu_op;
 
 typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
 
@@ -32,12 +32,11 @@ module alu(
 );
   logic[BITW-1:0] reg0, reg1;
 
-  logic bus_tri_rw;
-  logic[BITW-1:0] bus_tri_data;
-  logic bus_tri_rw_actual;
-  tri_buf #(.WIDTH(BITW)) buf_out(
-    .rw(clock ? bus_tri_rw : 1'b0), // only output data on single clock cycles (FIXME: this might actually not be ideal...)
-    .data(bus_tri_data),
+  logic tbuf_rw;
+  logic[BITW-1:0] tbuf_data;
+  tri_buf #(.WIDTH(BITW)) tbuf(
+    .rw(clock & tbuf_rw), // only output data while the clock is up
+    .data(tbuf_data),
     .bus(bus)
   );
 
@@ -45,37 +44,37 @@ module alu(
     if (~n_reset) begin
       reg0 <= 0;
       reg1 <= 0;
-      bus_tri_rw <= 0;
+      tbuf_rw <= 0;
     end else case (op)
       ALU_NOP: begin
-        bus_tri_rw <= 0;
+        tbuf_rw <= 0;
       end
       ALU_ADD: begin
-        bus_tri_data <= reg0 + reg1;
-        bus_tri_rw <= 1;
+        tbuf_data <= reg0 + reg1;
+        tbuf_rw <= 1;
       end
       ALU_INC: begin
-        bus_tri_data <= reg1 + 1;
-        bus_tri_rw <= 1;
+        tbuf_data <= reg1 + 1;
+        tbuf_rw <= 1;
       end
       ALU_SUB: begin
-        bus_tri_data <= reg0 - reg1;
-        bus_tri_rw <= 1;
+        tbuf_data <= reg0 - reg1;
+        tbuf_rw <= 1;
       end
       ALU_READ_R0: begin
-        bus_tri_data <= reg0;
-        bus_tri_rw <= 1;
+        tbuf_data <= reg0;
+        tbuf_rw <= 1;
       end
       ALU_READ_R1: begin
-        bus_tri_data <= reg1;
-        bus_tri_rw <= 1;
+        tbuf_data <= reg1;
+        tbuf_rw <= 1;
       end
       ALU_WRITE_R0: begin
-        bus_tri_rw <= 0;
+        tbuf_rw <= 0;
         reg0 <= bus;
       end
       ALU_WRITE_R1: begin
-        bus_tri_rw <= 0;
+        tbuf_rw <= 0;
         reg1 <= bus;
       end
     endcase
