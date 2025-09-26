@@ -1,3 +1,4 @@
+// General-purpose register.
 module register(
   input logic clock, n_reset, wr_en, rd_en,
   inout wire[BITW-1:0] bus
@@ -5,35 +6,43 @@ module register(
   logic[BITW-1:0] data;
 
   logic tbuf_rw;
-  logic[BITW-1:0] tbuf_out_data;
-  tri_buf #(.WIDTH(BITW)) tbuf(.rw(tbuf_rw), .data(tbuf_out_data), .bus(bus));
+  tri_buf #(.WIDTH(BITW)) tbuf(.rw(tbuf_rw), .data(data), .bus(bus));
+
+  typedef enum {
+    STATE_IDLE,
+    STATE_WRITING_IN,
+    STATE_READING_OUT,
+    STATE_MAX
+  } _state_enum_t;
+  logic[$clog2(STATE_MAX)-1:0] state;
+
+  logic should_read, should_write;
+  assign should_read = ({wr_en, rd_en} == 2'b01);
+  assign should_write = ({wr_en, rd_en} == 2'b10);
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin
+      state <= STATE_IDLE;
       data <= 0;
-      tbuf_rw <= 0;
-      tbuf_out_data <= 0;
     end else begin
-      case ({wr_en, rd_en})
-        2'b00: begin
-          // Do nothing
-          tbuf_rw <= 0;
+      case (state)
+        STATE_IDLE: begin
+          if (should_read)
+            state <= STATE_READING_OUT;
+          else if (should_write)
+            state <= STATE_WRITING_IN;
         end
-        2'b01: begin
-          // Read from register - write into bus
-          tbuf_rw <= 1;
-          tbuf_out_data <= data;
+        STATE_READING_OUT: begin
+          state <= STATE_IDLE;
         end
-        2'b10: begin
-          // Write into register - read from bus
-          tbuf_rw <= 0;
+        STATE_WRITING_IN: begin
           data <= bus;
-        end
-        2'b11: begin
-          // Invalid operation... do nothing
-          tbuf_rw <= 0;
+          state <= STATE_IDLE;
         end
       endcase
     end
   end
+
+  // only write data to the bus when in the read state
+  assign tbuf_rw = (state == STATE_READING_OUT);
 endmodule;

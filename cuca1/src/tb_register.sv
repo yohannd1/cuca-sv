@@ -14,46 +14,54 @@ module tb_register;
 
   task bus_feed(input logic[7:0] value);
     bus_tri_data <= value;
-    bus_tri_rw <= 1;
+    bus_tri_rw <= 1'b1;
   endtask
 
   task bus_cut();
-    bus_tri_rw <= 0;
+    bus_tri_rw <= 1'b0;
   endtask
 
   task test_write(input integer val);
     assert (~clock)
     else $fatal(0, "bad start conditions");
 
-    wr_en <= 1;
+    // issue write
+    {rd_en, wr_en} <= 2'b01;
+    @(negedge clock);
+
+    // feed the data
     bus_feed(val);
     @(negedge clock);
+
+    // finish
+    bus_cut();
+    {rd_en, wr_en} <= 2'b00;
 
     assert (uut.data === val)
     else $fatal(0, "failed test_write");
 
     assert (~clock)
     else $fatal(0, "bad end conditions");
-
-    wr_en <= 0;
-    bus_cut();
   endtask
 
   task test_read(input integer val);
     assert (~clock)
     else $fatal(0, "bad start conditions");
 
-    rd_en <= 1;
+    // issue read
+    {rd_en, wr_en} <= 2'b10;
     bus_cut();
     @(negedge clock);
 
     assert (val === bus)
     else $fatal(0, "value is not expected");
+    @(negedge clock);
+
+    // finish
+    {rd_en, wr_en} <= 2'b00;
 
     assert (~clock)
     else $fatal(0, "bad end conditions");
-
-    rd_en <= 0;
   endtask
 
   initial begin
@@ -68,10 +76,10 @@ module tb_register;
     n_reset <= 0;
     @(negedge clock);
 
+    // quick test for bus correctness
     bus_feed(10);
     #1 assert (bus === 10)
     else $fatal(0, "bus test 1 failed");
-
     bus_cut();
     #1 assert (bus === 'z)
     else $fatal(0, "bus test 2 failed");

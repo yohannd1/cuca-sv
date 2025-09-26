@@ -11,6 +11,9 @@ aim to do that in the future (TODO).
 
 ## building / testing
 
+I want this project to eventually target FPGAs. Beware that I'm a novice
+FPGA programmer, though!
+
 At the moment I'm using [Icarus
 Verilog](https://steveicarus.github.io/iverilog/) for everything, though
 it doesn't work for synthesis. I'll think more about this later.
