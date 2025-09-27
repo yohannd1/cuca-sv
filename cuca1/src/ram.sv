@@ -1,86 +1,72 @@
-localparam BITW = 8;
+package ram_pkg;
+  typedef enum {
+    STATE_IDLE,
+    STATE_READING_ADDR,
+    STATE_READING_OUT,
+    STATE_WRITING_ADDR,
+    STATE_WRITING_IN,
+    STATE_MAX
+  } _ram_state_t;
 
-typedef enum {
-  STATE_IDLE,
-  STATE_READ,
-  STATE_WRITE,
-  STATE_MAX
-} state_t;
+  localparam BITW = 8;
+endpackage
 
 // Random Access Memory (RAM) module.
 //
-// Perform actions when `enable` is set:
+// READING
+// 1. Wait for enable=1, rw=0
+// 2. Wait for enable=1: address <- bus
+// 3. Wait for enable=1: bus <- mem[address]
 //
-// 1. read mode (rw=0) - reads an address from `bus`; on the next cycle,
-// drives into `bus` the value at that address.
-//
-// 2. write mode (rw=1) - reads an address from `bus`; on the next
-// cycle, reads a value from `bus` and puts said value on the address.
+// WRITING
+// 1. Wait for enable=1, rw=1
+// 2. Wait for enable=1: address <- bus
+// 3. Wait for enable=1: mem[address] <- bus
 module ram(
   input logic clock, n_reset, enable, rw,
-  inout wire[BITW-1:0] bus
+  inout wire[ram_pkg::BITW-1:0] bus
 );
-  localparam SIZE = 256;
+  import ram_pkg::*;
+  import ram_pkg::STATE_READING_OUT;
+  localparam RAM_SIZE = 256;
 
-  logic[BITW-1:0] memory[SIZE];
+  logic[BITW-1:0] memory[RAM_SIZE];
   logic[BITW-1:0] address, data;
   logic[$clog2(STATE_MAX)-1:0] state;
 
-  logic bus_tri_rw;
-  logic[BITW-1:0] bus_tri_data;
+  wire tbuf_rw;
+
+  // Bus I/O logic (the bus is written to only when reading data from a memory address)
   tri_buf #(.WIDTH(BITW)) buf_out(
-    .rw(clock & bus_tri_rw),
-    .data(bus_tri_data),
+    .rw(tbuf_rw),
+    .data((address < RAM_SIZE) ? memory[address] : 8'bX),
     .bus(bus)
   );
 
-  task automatic bus_feed(input logic[BITW-1:0] value);
-    bus_tri_data <= value;
-    bus_tri_rw <= 1;
-  endtask
-
-  task automatic bus_cut();
-    bus_tri_rw <= 0;
-  endtask
+  assign tbuf_rw = (state == STATE_READING_OUT);
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin
-      bus_tri_rw <= 0;
       state <= STATE_IDLE;
-      for (int i = 0; i < SIZE; i++)
-        memory[i] <= '0;
-    end else begin
-      case (state)
-        STATE_IDLE: begin
-          bus_cut();
-
-          if (enable) begin
-            address <= bus;
-            state <= (~rw) ? STATE_READ : STATE_WRITE;
-          end
-        end
-
-        STATE_READ: begin
-          bus_cut();
-
-          if (enable) begin
-            bus_tri_rw <= 1;
-            bus_tri_data <= memory[address];
-          end
-          state <= STATE_IDLE;
-        end
-
-        STATE_WRITE: begin
-          bus_cut();
-
-          // at this point we have the address but we need to wait for another
-          // enable with the data
-          if (enable && rw) begin
-            memory[address] <= bus;
-            state <= STATE_IDLE;
-          end
-        end
-      endcase
-    end
+      for (int i = 0; i < RAM_SIZE; i++)
+        memory[i] <= 'b0;
+    end else case(state)
+      STATE_IDLE: if (enable) begin
+        state <= rw ? STATE_WRITING_ADDR : STATE_READING_ADDR;
+      end
+      STATE_READING_ADDR: if (enable) begin
+        address <= bus;
+        state <= STATE_READING_OUT;
+      end
+      STATE_READING_OUT: state <= STATE_IDLE;
+      STATE_WRITING_ADDR: if (enable) begin
+        address <= bus;
+        state <= STATE_READING_OUT;
+      end
+      STATE_WRITING_IN: if (enable) begin
+        memory[address] <= bus;
+        state <= STATE_IDLE;
+      end
+    endcase
   end
 endmodule

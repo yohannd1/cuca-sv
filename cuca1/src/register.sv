@@ -1,12 +1,12 @@
 // General-purpose register.
 module register(
   input logic clock, n_reset, wr_en, rd_en,
-  inout wire[BITW-1:0] bus
+  inout wire[ram_pkg::BITW-1:0] bus
 );
-  logic[BITW-1:0] data;
+  logic[ram_pkg::BITW-1:0] data;
 
   logic tbuf_rw;
-  tri_buf #(.WIDTH(BITW)) tbuf(.rw(tbuf_rw), .data(data), .bus(bus));
+  tri_buf #(.WIDTH(ram_pkg::BITW)) tbuf(.rw(tbuf_rw), .data(data), .bus(bus));
 
   typedef enum {
     STATE_IDLE,

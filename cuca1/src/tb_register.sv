@@ -94,7 +94,6 @@ module tb_register;
     assert (uut.data === 0);
 
     test_write(20);
-
     test_read(20);
 
     $finish;

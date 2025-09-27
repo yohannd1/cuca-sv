@@ -28,13 +28,13 @@ typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
 module alu(
   input logic clock, n_reset,
   input alu_op_t op,
-  inout wire[BITW-1:0] bus
+  inout wire[ram_pkg::BITW-1:0] bus
 );
-  logic[BITW-1:0] reg0, reg1;
+  logic[ram_pkg::BITW-1:0] reg0, reg1;
 
   logic tbuf_rw;
-  logic[BITW-1:0] tbuf_data;
-  tri_buf #(.WIDTH(BITW)) tbuf(
+  logic[ram_pkg::BITW-1:0] tbuf_data;
+  tri_buf #(.WIDTH(ram_pkg::BITW)) tbuf(
     .rw(clock & tbuf_rw), // only output data while the clock is up
     .data(tbuf_data),
     .bus(bus)

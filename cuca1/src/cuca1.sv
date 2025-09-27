@@ -1,6 +1,6 @@
 module cuca1(
   input logic clock, n_reset,
-  output wire[BITW-1:0] ext_bus
+  output wire[ram_pkg::BITW-1:0] ext_bus
 );
   typedef enum {
     PIN_ACC_RD,
@@ -30,7 +30,7 @@ module cuca1(
   typedef logic[$clog2(MCPROG_SIZE)-1:0] mcprog_ptr_t;
   mcprog_line_t mcprog_mem[MCPROG_SIZE];
 
-  wire[BITW-1:0] bus;
+  wire[ram_pkg::BITW-1:0] bus;
 
   alu_op_t alu_op;
   alu alu_(.clock(clock), .n_reset(n_reset), .op(alu_op), .bus(bus));
