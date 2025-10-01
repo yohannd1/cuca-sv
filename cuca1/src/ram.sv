@@ -6,9 +6,10 @@ package ram_pkg;
     STATE_WRITING_ADDR,
     STATE_WRITING_IN,
     STATE_MAX
-  } _ram_state_t;
+  } _state_t;
 
-  localparam BITW = 8;
+  typedef logic[$clog2(STATE_MAX)-1:0] state_t;
+
 endpackage
 
 // Random Access Memory (RAM) module.
@@ -24,26 +25,27 @@ endpackage
 // 3. Wait for enable=1: mem[address] <- bus
 module ram(
   input logic clock, n_reset, enable, rw,
-  inout wire[ram_pkg::BITW-1:0] bus
+  inout wire cfg::word_t bus
 );
+  import cfg::word_t;
   import ram_pkg::*;
-  import ram_pkg::STATE_READING_OUT;
+
   localparam RAM_SIZE = 256;
 
-  logic[BITW-1:0] memory[RAM_SIZE];
-  logic[BITW-1:0] address, data;
-  logic[$clog2(STATE_MAX)-1:0] state;
+  ram_pkg::state_t state;
+
+  word_t memory[RAM_SIZE];
+  word_t address, data;
 
   wire tbuf_rw;
+  assign tbuf_rw = (state == STATE_READING_OUT);
 
   // Bus I/O logic (the bus is written to only when reading data from a memory address)
-  tri_buf #(.WIDTH(BITW)) buf_out(
+  tri_buf #(.WIDTH(cfg::WORD_SIZE)) buf_out(
     .rw(tbuf_rw),
     .data((address < RAM_SIZE) ? memory[address] : 8'bX),
     .bus(bus)
   );
-
-  assign tbuf_rw = (state == STATE_READING_OUT);
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin

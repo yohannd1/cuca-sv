@@ -24,7 +24,7 @@ tbs[register]="src/tb_register.sv"
 tbs[alu]="src/tb_alu.sv"
 tbs[cuca1]="src/tb_cuca1.sv"
 
-sources=(src/tri_buf.sv src/ram.sv src/register.sv src/alu.sv src/cuca1.sv)
+sources=(src/config.sv src/tri_buf.sv src/ram.sv src/register.sv src/alu.sv src/cuca1.sv)
 
 if [ ! -d build ]; then
   printf >&2 "build dir not found - creating it...\n"

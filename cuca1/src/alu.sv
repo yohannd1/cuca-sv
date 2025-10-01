@@ -1,16 +1,18 @@
-typedef enum {
-  ALU_NOP,
-  ALU_ADD,
-  ALU_INC,
-  ALU_SUB,
-  ALU_READ_R0,
-  ALU_READ_R1,
-  ALU_WRITE_R0,
-  ALU_WRITE_R1,
-  ALU_MAX
-} enum_alu_op;
+package alu_pkg;
+  typedef enum {
+    ALU_NOP,
+    ALU_ADD,
+    ALU_INC,
+    ALU_SUB,
+    ALU_READ_R0,
+    ALU_READ_R1,
+    ALU_WRITE_R0,
+    ALU_WRITE_R1,
+    ALU_MAX
+  } _alu_op_enum_t;
 
-typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
+  typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
+endpackage
 
 // Arithmetic-Logic Unit (ALU)
 //
@@ -27,12 +29,12 @@ typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
 //   ALU_WRITE_R1: ula(1) <- bus
 module alu(
   input logic clock, n_reset,
-  input alu_op_t op,
-  inout wire[ram_pkg::BITW-1:0] bus
+  input alu_pkg::alu_op_t op,
+  inout wire cfg::word_t bus
 );
-  import ram_pkg::BITW;
+  import alu_pkg::*;
 
-  logic[ram_pkg::BITW-1:0] reg0, reg1;
+  cfg::word_t reg0, reg1;
 
   typedef enum {
     STATE_IDLE,
@@ -43,8 +45,8 @@ module alu(
   logic[$clog2(STATE_MAX)-1:0] state;
 
   logic tbuf_rw;
-  logic[ram_pkg::BITW-1:0] tbuf_data;
-  tri_buf #(.WIDTH(ram_pkg::BITW)) tbuf(
+  cfg::word_t tbuf_data;
+  tri_buf #(.WIDTH(cfg::WORD_SIZE)) tbuf(
     .rw(tbuf_rw),
     .data(tbuf_data),
     .bus(bus)

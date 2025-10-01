@@ -1,6 +1,7 @@
 `timescale 1ns/1ns
 
 module tb_alu;
+  import alu_pkg::*;
   localparam T = 2;
 
   wire[7:0] bus;

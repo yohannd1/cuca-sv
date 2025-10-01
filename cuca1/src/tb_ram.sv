@@ -1,20 +1,19 @@
 `timescale 1ns/1ns
 
 module tb_ram;
-  import ram_pkg::BITW;
-
+  import cfg::word_t;
   localparam T = 2;
 
-  wire[7:0] bus;
+  wire word_t bus;
 
   logic bus_tri_rw;
-  logic[7:0] bus_tri_data;
+  word_t bus_tri_data;
   tri_buf #(.WIDTH(8)) u0(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
 
   logic clock, n_reset, enable, rw;
   ram uut(.*);
 
-  task bus_feed(input logic[7:0] value);
+  task bus_feed(input word_t value);
     bus_tri_data <= value;
     bus_tri_rw <= 1;
   endtask

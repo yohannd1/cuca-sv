@@ -1,7 +1,9 @@
 module cuca1(
   input logic clock, n_reset,
-  output wire[ram_pkg::BITW-1:0] ext_bus
+  inout wire cfg::word_t ext_bus
 );
+  import alu_pkg::*;
+
   typedef enum {
     PIN_ACC_RD,
     PIN_ACC_WR,
@@ -20,17 +22,17 @@ module cuca1(
     PIN_ALU_WRITE_R1,
     PIN_END,
     PIN_MAX
-  } enum_microprogram_pin;
+  } _mcprog_pin_t;
 
   typedef logic[$clog2(PIN_MAX)-1:0] mcprog_line_t;
 
-  localparam mcprog_line_t nothing = 'b0;
+  localparam mcprog_line_t NOTHING = 'b0;
 
   localparam MCPROG_SIZE = 128;
   typedef logic[$clog2(MCPROG_SIZE)-1:0] mcprog_ptr_t;
   mcprog_line_t mcprog_mem[MCPROG_SIZE];
 
-  wire[ram_pkg::BITW-1:0] bus;
+  wire cfg::word_t bus;
 
   alu_op_t alu_op;
   alu alu_(.clock(clock), .n_reset(n_reset), .op(alu_op), .bus(bus));
@@ -47,10 +49,10 @@ module cuca1(
     if (~n_reset) begin
       mcprog_pc <= 0;
 
-      mcprog_mem[0] = nothing;
+      mcprog_mem[0] = NOTHING;
       mcprog_mem[0][PIN_PC_RD] = 1'b1;
       mcprog_mem[0][PIN_MEM_RD] = 1'b1;
-      mcprog_mem[1] = nothing;
+      mcprog_mem[1] = NOTHING;
       mcprog_mem[1][PIN_END] = 1'b1;
     end else begin
       if (mcprog_cur[PIN_END])

@@ -1,12 +1,12 @@
 // General-purpose register.
 module register(
   input logic clock, n_reset, wr_en, rd_en,
-  inout wire[ram_pkg::BITW-1:0] bus
+  inout wire cfg::word_t bus
 );
-  logic[ram_pkg::BITW-1:0] data;
+  cfg::word_t data;
 
   logic tbuf_rw;
-  tri_buf #(.WIDTH(ram_pkg::BITW)) tbuf(.rw(tbuf_rw), .data(data), .bus(bus));
+  tri_buf #(.WIDTH(cfg::WORD_SIZE)) tbuf(.rw(tbuf_rw), .data(data), .bus(bus));
 
   typedef enum {
     STATE_IDLE,
@@ -17,8 +17,7 @@ module register(
   logic[$clog2(STATE_MAX)-1:0] state;
 
   logic should_read, should_write;
-  assign should_read = ({wr_en, rd_en} == 2'b01);
-  assign should_write = ({wr_en, rd_en} == 2'b10);
+  assign should_read = ({wr_en, rd_en} == 2'b01); assign should_write = ({wr_en, rd_en} == 2'b10);
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin
@@ -45,4 +44,4 @@ module register(
 
   // only write data to the bus when in the read state
   assign tbuf_rw = (state == STATE_READING_OUT);
-endmodule;
+endmodule
