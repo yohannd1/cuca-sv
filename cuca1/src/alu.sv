@@ -12,7 +12,7 @@ typedef enum {
 
 typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
 
-// Arithmetic Logic Unit (ALU)
+// Arithmetic-Logic Unit (ALU)
 //
 // Comprised of two registers for storing operands: ula(0) and ula(1).
 //
@@ -30,52 +30,78 @@ module alu(
   input alu_op_t op,
   inout wire[ram_pkg::BITW-1:0] bus
 );
+  import ram_pkg::BITW;
+
   logic[ram_pkg::BITW-1:0] reg0, reg1;
+
+  typedef enum {
+    STATE_IDLE,
+    STATE_OP,
+    STATE_MAX
+  } _state_enum_t;
+
+  logic[$clog2(STATE_MAX)-1:0] state;
 
   logic tbuf_rw;
   logic[ram_pkg::BITW-1:0] tbuf_data;
   tri_buf #(.WIDTH(ram_pkg::BITW)) tbuf(
-    .rw(clock & tbuf_rw), // only output data while the clock is up
+    .rw(tbuf_rw),
     .data(tbuf_data),
     .bus(bus)
   );
 
   always_ff @(posedge clock) begin
     if (~n_reset) begin
+      state <= STATE_IDLE;
       reg0 <= 0;
       reg1 <= 0;
-      tbuf_rw <= 0;
-    end else case (op)
-      ALU_NOP: begin
-        tbuf_rw <= 0;
+    end else case (state)
+      STATE_IDLE: begin
+        state <= (op == ALU_NOP) ? STATE_IDLE : STATE_OP;
       end
+      STATE_OP: begin
+        state <= STATE_IDLE;
+
+        case (op)
+          ALU_WRITE_R0: reg0 <= bus;
+          ALU_WRITE_R1: reg1 <= bus;
+        endcase
+      end
+    endcase
+  end
+
+  // bus I/O logic
+  always_comb begin
+    case (op)
       ALU_ADD: begin
-        tbuf_data <= reg0 + reg1;
-        tbuf_rw <= 1;
+        tbuf_data = reg0 + reg1;
+        tbuf_rw = 1;
       end
       ALU_INC: begin
-        tbuf_data <= reg1 + 1;
-        tbuf_rw <= 1;
+        tbuf_data = reg1 + 1;
+        tbuf_rw = 1;
       end
       ALU_SUB: begin
-        tbuf_data <= reg0 - reg1;
-        tbuf_rw <= 1;
+        tbuf_data = reg0 - reg1;
+        tbuf_rw = 1;
       end
       ALU_READ_R0: begin
-        tbuf_data <= reg0;
-        tbuf_rw <= 1;
+        tbuf_data = reg0;
+        tbuf_rw = 1;
       end
       ALU_READ_R1: begin
-        tbuf_data <= reg1;
-        tbuf_rw <= 1;
+        tbuf_data = reg1;
+        tbuf_rw = 1;
       end
       ALU_WRITE_R0: begin
-        tbuf_rw <= 0;
-        reg0 <= bus;
+        tbuf_rw = 0;
       end
       ALU_WRITE_R1: begin
-        tbuf_rw <= 0;
-        reg1 <= bus;
+        tbuf_rw = 0;
+      end
+      default: begin
+        tbuf_rw = 0;
+        tbuf_data = 'bX;
       end
     endcase
   end

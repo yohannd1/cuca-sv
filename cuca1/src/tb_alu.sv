@@ -27,21 +27,24 @@ module tb_alu;
     else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
+    @(negedge clock);
     bus_feed(a);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_WRITE_R1;
+    @(negedge clock);
     bus_feed(b);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_ADD;
-    bus_cut();
     @(negedge clock);
 
     assert (bus === a + b)
     else $error("failed test_add");
 
-    bus_cut();
+    @(negedge clock);
   endtask
 
   task test_sub(input integer a, b);
@@ -49,21 +52,24 @@ module tb_alu;
     else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
+    @(negedge clock);
     bus_feed(a);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_WRITE_R1;
+    @(negedge clock);
     bus_feed(b);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_SUB;
-    bus_cut();
     @(negedge clock);
 
     assert (bus === a - b)
     else $error("failed test_sub");
 
-    bus_cut();
+    @(negedge clock);
   endtask
 
   task test_inc(input integer a);
@@ -71,17 +77,18 @@ module tb_alu;
     else $error("bad start conditions");
 
     op <= ALU_WRITE_R1;
+    @(negedge clock);
     bus_feed(a);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_INC;
-    bus_cut();
     @(negedge clock);
 
     assert (bus === a + 1)
     else $error("failed test_inc");
 
-    bus_cut();
+    @(negedge clock);
   endtask
 
   task test_rw();
@@ -89,28 +96,32 @@ module tb_alu;
     else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
+    @(negedge clock);
     bus_feed(15);
     @(negedge clock);
+    bus_cut();
 
     op <= ALU_READ_R0;
-    bus_cut();
     @(negedge clock);
 
     assert (bus === 15)
     else $error("failed test_rw (reg 0)");
 
-    op <= ALU_WRITE_R1;
-    bus_feed(15);
     @(negedge clock);
 
-    op <= ALU_READ_R1;
+    op <= ALU_WRITE_R1;
+    @(negedge clock);
+    bus_feed(15);
+    @(negedge clock);
     bus_cut();
+
+    op <= ALU_READ_R1;
     @(negedge clock);
 
     assert (bus === 15)
     else $error("failed test_rw (reg 1)");
 
-    bus_cut();
+    @(negedge clock);
   endtask
 
   initial begin
@@ -123,21 +134,18 @@ module tb_alu;
     $dumpvars(0, tb_alu);
 
     op <= ALU_NOP;
-
-    n_reset <= 0;
+    n_reset <= 1'b0;
     @(negedge clock);
 
     bus_feed(10);
-    #1 assert (bus === 10)
-    else $error("bus test 1 failed");
+    #1 assert (bus === 10) else $error("bus test 1 failed");
 
     bus_cut();
-    #1 assert (bus === 'z)
-    else $error("bus test 2 failed");
+    #1 assert (bus === 'z) else $error("bus test 2 failed");
 
     @(negedge clock);
 
-    n_reset <= 1;
+    n_reset <= 1'b1;
     test_add(1, 5);
     test_sub(5, 3);
     test_inc(1);
