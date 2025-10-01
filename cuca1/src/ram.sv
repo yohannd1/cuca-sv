@@ -61,7 +61,7 @@ module ram(
       STATE_READING_OUT: state <= STATE_IDLE;
       STATE_WRITING_ADDR: if (enable) begin
         address <= bus;
-        state <= STATE_READING_OUT;
+        state <= STATE_WRITING_IN;
       end
       STATE_WRITING_IN: if (enable) begin
         memory[address] <= bus;

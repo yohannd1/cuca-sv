@@ -107,9 +107,8 @@ module tb_ram;
     @(negedge clock);
 
     test_read(10);
-    #8;
-    // test_write(10, 15);
-    // test_read(10);
+    test_write(10, 15);
+    test_read(10);
 
     $finish;
   end
