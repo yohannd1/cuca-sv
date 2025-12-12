@@ -1,5 +1,8 @@
+package cuca1_pkg;
+endpackage
+
 module cuca1(
-  input logic clock, n_reset,
+  input logic clk_in, n_rst_in,
   inout wire cfg::word_t ext_bus
 );
   import alu_pkg::*;
@@ -35,30 +38,48 @@ module cuca1(
   wire cfg::word_t bus;
 
   alu_op_t alu_op;
-  alu alu_(.clock(clock), .n_reset(n_reset), .op(alu_op), .bus(bus));
+  alu alu_u0(
+    .clock(clk_in),
+    .n_reset(n_rst_in),
+    .op(alu_op),
+    .bus(bus)
+  );
 
   mcprog_ptr_t mcprog_pc;
   mcprog_line_t mcprog_cur;
   assign mcprog_cur = mcprog_mem[mcprog_pc];
 
-  register acc(.clock(clock), .rd_en(mcprog_cur[PIN_ACC_RD]), .wr_en(mcprog_cur[PIN_ACC_WR]));
-  register pc(.clock(clock), .rd_en(mcprog_cur[PIN_PC_RD]), .wr_en(mcprog_cur[PIN_PC_WR]));
-  register ir(.clock(clock), .rd_en(mcprog_cur[PIN_IR_RD]), .wr_en(mcprog_cur[PIN_IR_WR]));
+  register reg_acc(
+    .clock(clk_in),
+    .rd_en(mcprog_cur[PIN_ACC_RD]),
+    .wr_en(mcprog_cur[PIN_ACC_WR])
+  );
 
-  always_ff @(posedge clock) begin
-    if (~n_reset) begin
+  register reg_pc(
+    .clock(clk_in),
+    .rd_en(mcprog_cur[PIN_PC_RD]),
+    .wr_en(mcprog_cur[PIN_PC_WR])
+  );
+
+  register reg_ir(
+    .clock(clk_in),
+    .rd_en(mcprog_cur[PIN_IR_RD]),
+    .wr_en(mcprog_cur[PIN_IR_WR])
+  );
+
+  initial begin: microprogram_init
+    mcprog_mem[0] <=
+      (1 << PIN_PC_RD) |
+      (1 << PIN_MEM_RD);
+
+    mcprog_mem[1] <= PIN_END;
+  end
+
+  always_ff @(posedge clk_in) begin
+    if (~n_rst_in) begin
       mcprog_pc <= 0;
-
-      mcprog_mem[0] = NOTHING;
-      mcprog_mem[0][PIN_PC_RD] = 1'b1;
-      mcprog_mem[0][PIN_MEM_RD] = 1'b1;
-      mcprog_mem[1] = NOTHING;
-      mcprog_mem[1][PIN_END] = 1'b1;
     end else begin
-      if (mcprog_cur[PIN_END])
-        mcprog_pc <= 0;
-      else
-        mcprog_pc <= mcprog_pc + 1;
+      mcprog_pc <= mcprog_cur[PIN_END] ? 0 : mcprog_pc + 1;
     end
   end
 

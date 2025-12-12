@@ -9,7 +9,6 @@ package ram_pkg;
   } _state_t;
 
   typedef logic[$clog2(STATE_MAX)-1:0] state_t;
-
 endpackage
 
 // Random Access Memory (RAM) module.
@@ -24,7 +23,7 @@ endpackage
 // 2. Wait for enable=1: address <- bus
 // 3. Wait for enable=1: mem[address] <- bus
 module ram(
-  input logic clock, n_reset, enable, rw,
+  input logic clk_in, n_rst_in, enable, rw,
   inout wire cfg::word_t bus
 );
   import cfg::word_t;
@@ -47,8 +46,8 @@ module ram(
     .bus(bus)
   );
 
-  always_ff @(posedge clock) begin
-    if (~n_reset) begin
+  always_ff @(posedge clk_in) begin
+    if (~n_rst_in) begin
       state <= STATE_IDLE;
       for (int i = 0; i < RAM_SIZE; i++)
         memory[i] <= 'b0;

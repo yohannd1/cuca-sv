@@ -11,7 +11,10 @@ module tb_ram;
   tri_buf #(.WIDTH(8)) u0(.rw(bus_tri_rw), .data(bus_tri_data), .bus(bus));
 
   logic clock, n_reset, enable, rw;
-  ram uut(.*);
+  ram uut(
+    .clk_in(clock), .n_rst_in(n_reset), .enable(enable),
+    .rw(rw), .bus(bus)
+  );
 
   task bus_feed(input word_t value);
     bus_tri_data <= value;
