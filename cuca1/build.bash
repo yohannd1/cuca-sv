@@ -18,11 +18,11 @@ run() {
 [ $# -gt 0 ] || showHelp
 
 declare -A tbs
-tbs[ram]="src/tb_ram.sv"
-tbs[tri_buf]="src/tb_tri_buf.sv"
-tbs[register]="src/tb_register.sv"
-tbs[alu]="src/tb_alu.sv"
-tbs[cuca1]="src/tb_cuca1.sv"
+tbs[ram]="src/testbench/tb_ram.sv"
+tbs[tri_buf]="src/testbench/tb_tri_buf.sv"
+tbs[register]="src/testbench/tb_register.sv"
+tbs[alu]="src/testbench/tb_alu.sv"
+tbs[cuca1]="src/testbench/tb_cuca1.sv"
 
 sources=(src/config.sv src/tri_buf.sv src/ram.sv src/register.sv src/alu.sv src/cuca1.sv)
 
