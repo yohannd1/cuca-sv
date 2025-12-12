@@ -27,7 +27,7 @@ module cuca1(
     PIN_MAX
   } _mcprog_pin_t;
 
-  typedef logic[$clog2(PIN_MAX)-1:0] mcprog_line_t;
+  typedef logic[PIN_MAX-1:0] mcprog_line_t;
 
   localparam mcprog_line_t NOTHING = 'b0;
 
