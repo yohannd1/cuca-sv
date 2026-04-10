@@ -27,18 +27,15 @@ module tb_alu;
     assert (~clock)
     else $error("bad start conditions");
 
+    bus_feed(a);
     op <= ALU_WRITE_R0;
     @(negedge clock);
-    bus_feed(a);
-    @(negedge clock);
-    bus_cut();
 
+    bus_feed(b);
     op <= ALU_WRITE_R1;
     @(negedge clock);
-    bus_feed(b);
-    @(negedge clock);
-    bus_cut();
 
+    bus_cut();
     op <= ALU_ADD;
     @(negedge clock);
 
@@ -52,18 +49,15 @@ module tb_alu;
     assert (~clock)
     else $error("bad start conditions");
 
+    bus_feed(a);
     op <= ALU_WRITE_R0;
     @(negedge clock);
-    bus_feed(a);
-    @(negedge clock);
-    bus_cut();
 
+    bus_feed(b);
     op <= ALU_WRITE_R1;
     @(negedge clock);
-    bus_feed(b);
-    @(negedge clock);
-    bus_cut();
 
+    bus_cut();
     op <= ALU_SUB;
     @(negedge clock);
 
@@ -77,13 +71,12 @@ module tb_alu;
     assert (~clock)
     else $error("bad start conditions");
 
+    bus_feed(a);
     op <= ALU_WRITE_R1;
     @(negedge clock);
-    bus_feed(a);
-    @(negedge clock);
-    bus_cut();
 
     op <= ALU_INC;
+    bus_cut();
     @(negedge clock);
 
     assert (bus === a + 1)
@@ -97,11 +90,10 @@ module tb_alu;
     else $error("bad start conditions");
 
     op <= ALU_WRITE_R0;
-    @(negedge clock);
     bus_feed(15);
     @(negedge clock);
-    bus_cut();
 
+    bus_cut();
     op <= ALU_READ_R0;
     @(negedge clock);
 
@@ -111,11 +103,10 @@ module tb_alu;
     @(negedge clock);
 
     op <= ALU_WRITE_R1;
-    @(negedge clock);
     bus_feed(15);
     @(negedge clock);
-    bus_cut();
 
+    bus_cut();
     op <= ALU_READ_R1;
     @(negedge clock);
 

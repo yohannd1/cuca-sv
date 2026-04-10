@@ -14,19 +14,23 @@ package alu_pkg;
   typedef logic[$clog2(ALU_MAX)-1:0] alu_op_t;
 endpackage
 
-// Arithmetic-Logic Unit (ALU)
+// An Arithmetic-Logic Unit (ALU) with the capability of operating basic
+// addition and subtraction commands.
 //
-// Comprised of two registers for storing operands: ula(0) and ula(1).
+// Comprised of two registers for storing operands: alu(0) and alu(1).
 //
 // Valid operations:
 //   ALU_NOP: do nothing
-//   ALU_ADD: bus <- ula(0) + ula(1)
-//   ALU_INC: bus <- ula(1) + 1
-//   ALU_SUB: bus <- ula(0) - ula(1)
-//   ALU_READ_R0: bus <- ula(0)
-//   ALU_READ_R1: bus <- ula(1)
-//   ALU_WRITE_R0: ula(0) <- bus
-//   ALU_WRITE_R1: ula(1) <- bus
+//   ALU_ADD: bus <- alu(0) + alu(1)
+//   ALU_INC: bus <- alu(1) + 1
+//   ALU_SUB: bus <- alu(0) - alu(1)
+//   ALU_READ_R0: bus <- alu(0)
+//   ALU_READ_R1: bus <- alu(1)
+//   ALU_WRITE_R0: alu(0) <- bus
+//   ALU_WRITE_R1: alu(1) <- bus
+//
+// All operations take one cycle to take effect. Bus operations are "sticky"
+// and should be immediately followed by another operation (not even ALU_NOP).
 module alu(
   input logic clock, n_reset,
   input alu_pkg::alu_op_t op,
@@ -36,14 +40,6 @@ module alu(
 
   cfg::word_t reg0, reg1;
 
-  typedef enum {
-    STATE_IDLE,
-    STATE_OP,
-    STATE_MAX
-  } _state_enum_t;
-
-  logic[$clog2(STATE_MAX)-1:0] state;
-
   logic tbuf_rw;
   cfg::word_t tbuf_data;
   tri_buf #(.WIDTH(cfg::WORD_SIZE)) tbuf(
@@ -52,24 +48,23 @@ module alu(
     .bus(bus)
   );
 
+  alu_op_t cur_op;
+
   always_ff @(posedge clock) begin
     if (~n_reset) begin
-      state <= STATE_IDLE;
-      reg0 <= 0;
-      reg1 <= 0;
-    end else case (state)
-      STATE_IDLE: begin
-        state <= (op == ALU_NOP) ? STATE_IDLE : STATE_OP;
-      end
-      STATE_OP: begin
-        state <= STATE_IDLE;
+      cur_op <= ALU_NOP;
+      reg0 <= 'b0;
+      reg1 <= 'b0;
+    end else begin
+      cur_op <= op;
 
-        case (op)
-          ALU_WRITE_R0: reg0 <= bus;
-          ALU_WRITE_R1: reg1 <= bus;
-        endcase
-      end
-    endcase
+      // register transfers
+      case (op)
+        ALU_WRITE_R0: reg0 <= bus;
+        ALU_WRITE_R1: reg1 <= bus;
+        default: begin end
+      endcase
+    end
   end
 
   // bus I/O logic
@@ -95,15 +90,9 @@ module alu(
         tbuf_data = reg1;
         tbuf_rw = 1;
       end
-      ALU_WRITE_R0: begin
-        tbuf_rw = 0;
-      end
-      ALU_WRITE_R1: begin
-        tbuf_rw = 0;
-      end
       default: begin
         tbuf_rw = 0;
-        tbuf_data = 'bX;
+        tbuf_data = 'b0;
       end
     endcase
   end
