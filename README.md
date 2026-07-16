@@ -1,3 +1,7 @@
+# I ARCHIVED THIS
+
+Whoops. See https://github.com/yohannd1/computers.
+
 ## cuca-sv
 
 Attempts at implementing the two CUCA architectures, created by [Álvaro
